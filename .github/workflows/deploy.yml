@@ -3,8 +3,6 @@ name: Deploy (Firebase Hosting)
 on:
   push:
     branches: [ "main", "dev" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   deploy:
@@ -26,37 +24,23 @@ jobs:
         working-directory: web
         run: npm run build
 
-      # ✅ PROD: только push в main
+      # ===== PROD =====
       - name: Deploy PROD (live)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SA_PROD }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID_PROD }}
           channelId: live
-          firebaseHostingSite: smart-steg-pro-web-4-0-60182
 
-      # ✅ DEV: только push в dev
-      - name: Deploy DEV (channel dev)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+      # ===== DEV =====
+      - name: Deploy DEV
+        if: github.ref == 'refs/heads/dev'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SA_DEV }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID_DEV }}
           channelId: dev
-          firebaseHostingSite: smart-steg-pro-web-4-0-60182
           expires: 30d
-
-      # ✅ PR Preview: только для PR
-      - name: Deploy Preview for PR
-        if: github.event_name == 'pull_request'
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SA_DEV }}
-          projectId: ${{ secrets.FIREBASE_PROJECT_ID_DEV }}
-          channelId: pr-${{ github.event.number }}
-          firebaseHostingSite: smart-steg-pro-web-4-0-60182
-          expires: 7d
