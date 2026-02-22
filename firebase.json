@@ -2,8 +2,9 @@
   "hosting": [
     {
       "target": "prod",
-      "site": "smart-steg-pro-web-4-0-60182",
       "public": "web/dist",
+      "cleanUrls": true,
+      "trailingSlash": false,
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -15,8 +16,9 @@
     },
     {
       "target": "dev",
-      "site": "smart-steg-pro-web-4-0-dev",
       "public": "web/dist",
+      "cleanUrls": true,
+      "trailingSlash": false,
       "ignore": [
         "firebase.json",
         "**/.*",
