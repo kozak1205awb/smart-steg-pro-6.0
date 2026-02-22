@@ -2,21 +2,31 @@
   "hosting": [
     {
       "target": "prod",
-      "site": "smart-steg-pro-web-4-0-60182",
       "public": "web/dist",
       "cleanUrls": true,
       "trailingSlash": false,
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }]
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        { "source": "**", "destination": "/index.html" }
+      ]
     },
     {
       "target": "dev",
-      "site": "smart-steg-pro-web-4-0-60182",
       "public": "web/dist",
       "cleanUrls": true,
       "trailingSlash": false,
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }]
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        { "source": "**", "destination": "/index.html" }
+      ]
     }
   ]
 }
