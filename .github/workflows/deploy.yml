@@ -1,46 +1,83 @@
-name: Deploy Firebase
+name: Deploy (Firebase Hosting)
 
 on:
   push:
     branches:
       - main
+      - dev
+  workflow_dispatch:
 
-permissions:
-  contents: read
-  checks: write
+concurrency:
+  group: firebase-deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  deploy:
+  deploy-dev:
+    name: Deploy DEV
+    if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: web
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: Validate firebase.json hosting config
-        run: |
-          node -e "const fs=require('fs'); const c=JSON.parse(fs.readFileSync('firebase.json','utf8')); const entries=Array.isArray(c.hosting)?c.hosting:[c.hosting].filter(Boolean); for (const [i,h] of entries.entries()){ if(h && h.site && h.target){ throw new Error('firebase.json hosting['+i+'] has both site and target; keep only one'); } } console.log('firebase.json hosting config is valid');"
-
-      - name: Install dependencies
-        working-directory: web
+      - name: Install
         run: npm ci
 
       - name: Build
-        working-directory: web
-        env:
-          CI: "true"
         run: npm run build
 
-      - name: Deploy to Firebase Hosting
+      - name: Deploy to Firebase Hosting (DEV)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SA_DEV }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID_DEV }}
+          channelId: live
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
+
+  deploy-prod:
+    name: Deploy PROD
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Firebase Hosting (PROD)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SA_PROD }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID_PROD }}
-          target: prod
           channelId: live
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
