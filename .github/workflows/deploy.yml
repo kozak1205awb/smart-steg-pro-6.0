@@ -31,3 +31,4 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SA_PROD }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID_PROD }}
           channelId: live
+          target: hosting
