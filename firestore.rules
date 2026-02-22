@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function myUid() {
+      return request.auth.uid;
+    }
+
+    function myUserDoc() {
+      return get(/databases/$(database)/documents/users/$(myUid()));
+    }
+
+    function myRoles() {
+      return signedIn() && myUserDoc().exists() ? myUserDoc().data.roles : [];
+    }
+
+    function hasRole(r) {
+      return myRoles().hasAny([r]);
+    }
+
+    function myMaxLevel() {
+      // max по ролям
+      return hasRole("admin") ? 4 :
+             hasRole("manager") ? 3 :
+             hasRole("planner") ? 2 :
+             hasRole("worker") ? 1 : 0;
+    }
+
+    function atLeast(level) {
+      return signedIn() && myMaxLevel() >= level;
+    }
+
+    // ---------------- USERS ----------------
+    match /users/{uid} {
+      allow read: if signedIn() && (uid == myUid() || atLeast(4));
+      allow create: if signedIn() && uid == myUid();
+
+      allow update: if signedIn() && (
+        (atLeast(4)) ||
+        (uid == myUid() &&
+          !(request.resource.data.diff(resource.data).changedKeys().hasAny(["roles"]))
+        )
+      );
+
+      allow delete: if atLeast(4);
+    }
+
+    // ---------------- WAREHOUSE CORE ----------------
+    match /slots/{id} {
+      allow read: if signedIn() && atLeast(0);
+      allow write: if signedIn() && atLeast(1);
+    }
+
+    match /belt/{id} {
+      allow read: if signedIn() && atLeast(0);
+      allow write: if signedIn() && atLeast(1);
+    }
+
+    match /movements/{id} {
+      allow read: if signedIn() && atLeast(1);
+      allow create: if signedIn() && atLeast(1);
+      allow update, delete: if false;
+    }
+
+    // ---------------- CATALOGS ----------------
+    match /profiles/{id} {
+      allow read: if signedIn() && atLeast(0);
+      allow write: if signedIn() && atLeast(2);
+    }
+
+    match /stegCatalog/{id} {
+      allow read: if signedIn() && atLeast(0);
+      allow write: if signedIn() && atLeast(2);
+    }
+
+    // ---------------- RULES (Конституция) ----------------
+    match /rules/{id} {
+      allow read: if signedIn() && atLeast(0);
+      allow write: if signedIn() && atLeast(4);
+    }
+
+    // ---------------- BUFFER ROWS ----------------
+    match /bufferRows/{id} {
+      allow read: if signedIn() && atLeast(0);
+      allow write: if signedIn() && atLeast(4);
+    }
+
+    // ---------------- AUDIT ----------------
+    match /audit/{id} {
+      allow read: if signedIn() && atLeast(4);
+      allow create: if signedIn() && atLeast(4);
+      allow update, delete: if false;
+    }
+
+    // ---------------- DEFAULT DENY (ВСЕГДА В САМОМ КОНЦЕ) ----------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

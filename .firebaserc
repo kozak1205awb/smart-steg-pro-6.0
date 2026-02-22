@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "prod": "smart-steg-pro-web-4-0-81a96",
+    "dev": "smart-steg-pro-web-4-0-81a96"
+  },
+  "targets": {},
+  "etags": {}
+}
