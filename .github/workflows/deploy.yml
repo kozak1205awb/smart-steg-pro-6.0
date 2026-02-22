@@ -26,7 +26,7 @@ jobs:
         working-directory: web
         run: npm run build
 
-      # PROD: push to main -> deploy to live
+      # ✅ PROD: только push в main
       - name: Deploy PROD (live)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -37,7 +37,7 @@ jobs:
           channelId: live
           firebaseHostingSite: smart-steg-pro-web-4-0-60182
 
-      # DEV: push to dev -> deploy to channel "dev"
+      # ✅ DEV: только push в dev
       - name: Deploy DEV (channel dev)
         if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -49,7 +49,7 @@ jobs:
           firebaseHostingSite: smart-steg-pro-web-4-0-60182
           expires: 30d
 
-      # PR preview (uses DEV SA)
+      # ✅ PR Preview: только для PR
       - name: Deploy Preview for PR
         if: github.event_name == 'pull_request'
         uses: FirebaseExtended/action-hosting-deploy@v0
